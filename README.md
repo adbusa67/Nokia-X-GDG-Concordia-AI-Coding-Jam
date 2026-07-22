@@ -43,43 +43,43 @@ Welcome! This is a fast-paced AI coding jam designed to boost your skills and sp
 <table style="border-collapse: collapse; border: none;">
   <tr>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/image-makeover-studio"><img src="assets/Track_01.png" alt="Glow Up"></a><br>
+      <a href="https://codingjam.dev/tracks/image-makeover-studio" target="_blank"><img src="assets/Track_01.png" alt="Glow Up"></a><br>
       <strong>01 - Glow Up</strong>
     </td>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/ai-avatar-generator"><img src="assets/Track_02.png" alt="Avatar Studio"></a><br>
+      <a href="https://codingjam.dev/tracks/ai-avatar-generator" target="_blank"><img src="assets/Track_02.png" alt="Avatar Studio"></a><br>
       <strong>02 -Avatar Studio</strong>
     </td>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/my-special-year"><img src="assets/Track_03.png" alt="Year in Poetry"></a><br>
+      <a href="https://codingjam.dev/tracks/my-special-year" target="_blank"><img src="assets/Track_03.png" alt="Year in Poetry"></a><br>
       <strong>03 - Year in Poetry</strong>
     </td>
   </tr>
   <tr>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/fridge-to-recipe"><img src="assets/Track_04.png" alt="FridgeChef"></a><br>
+      <a href="https://codingjam.dev/tracks/fridge-to-recipe" target="_blank"><img src="assets/Track_04.png" alt="FridgeChef"></a><br>
       <strong>04 - FridgeChef</strong>
     </td>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/reflective-journal"><img src="assets/Track_05.png" alt="Mood Jar"></a><br>
+      <a href="https://codingjam.dev/tracks/reflective-journal" target="_blank"><img src="assets/Track_05.png" alt="Mood Jar"></a><br>
       <strong>05 - Mood Jar</strong>
     </td>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/one-page-portfolio"><img src="assets/Track_06.png" alt="My Corner"></a><br>
+      <a href="https://codingjam.dev/tracks/one-page-portfolio" target="_blank"><img src="assets/Track_06.png" alt="My Corner"></a><br>
       <strong>06 - My Corner</strong>
     </td>
   </tr>
   <tr>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/resume-tailor"><img src="assets/Track_07.png" alt="BulletProof"></a><br>
+      <a href="https://codingjam.dev/tracks/resume-tailor" target="_blank"><img src="assets/Track_07.png" alt="BulletProof"></a><br>
       <strong>07 - BulletProof</strong>
     </td>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/ai-character-chat"><img src="assets/Track_08.png" alt="Character Chat"></a><br>
+      <a href="https://codingjam.dev/tracks/ai-character-chat" target="_blank"><img src="assets/Track_08.png" alt="Character Chat"></a><br>
       <strong>08 - Character Chat</strong>
     </td>
     <td align="center" style="border: none;">
-      <a href="https://codingjam.dev/tracks/build-your-own-idea"><img src="assets/Track_09.png" alt="Your Own Idea"></a><br>
+      <a href="https://codingjam.dev/tracks/build-your-own-idea" target="_blank"><img src="assets/Track_09.png" alt="Your Own Idea"></a><br>
       <strong>09 - Your Own Idea</strong>
     </td>
   </tr>
