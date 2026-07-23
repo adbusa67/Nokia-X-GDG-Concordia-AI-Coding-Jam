@@ -5,7 +5,7 @@ import { Card } from "../components/Card";
 import { StatCard } from "../components/StatCard";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
-import { AwardPilotChat } from "../components/AwardPilotChat";
+import { PointPilotChat } from "../components/PointPilotChat";
 import { getSession, updateUserPoints } from "../lib/auth";
 import { formatPoints } from "../lib/format";
 import { User } from "../types/user";
@@ -95,11 +95,11 @@ export function DashboardPage() {
           </div>
         </Card>
 
-        {/* MAIN GRID: AwardPilot (dominant) + wallet column */}
+        {/* MAIN GRID: PointPilot (dominant) + wallet column */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* AWARDPILOT CHAT — primary element */}
           <section className="lg:col-span-2">
-            <AwardPilotChat user={user} />
+            <PointPilotChat user={user} />
           </section>
 
           {/* WALLET COLUMN */}

@@ -8,7 +8,7 @@ const features = [
   {
     icon: Bot,
     title: "AI Award Advisor",
-    text: "Ask AwardPilot how to book any flight for the fewest points, using the balances you already have.",
+    text: "Ask PointPilot how to book any flight for the fewest points, using the balances you already have.",
     accent: "#7C5CFF",
   },
   {
@@ -44,7 +44,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-4xl px-4 pb-16 pt-20 text-center sm:px-6 sm:pt-28">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-gray-300 backdrop-blur">
             <Sparkles className="h-3.5 w-3.5 text-pilot" />
-            Powered by AwardPilot AI
+            Powered by PointPilot AI
           </div>
 
           <h1 className="text-balance text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl">
@@ -55,7 +55,7 @@ export function LandingPage() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-pretty text-base text-gray-400 sm:text-lg">
-            Chat with AwardPilot, your AI award-travel expert, and track your Amex
+            Chat with PointPilot, your AI award-travel expert, and track your Amex
             and Aeroplan balances in one premium dashboard.
           </p>
 

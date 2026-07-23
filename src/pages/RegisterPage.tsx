@@ -46,7 +46,7 @@ export function RegisterPage() {
             </div>
             <h1 className="text-2xl font-extrabold text-white">Create your account</h1>
             <p className="mt-1 text-sm text-gray-400">
-              Start tracking points and chatting with AwardPilot.
+              Start tracking points and chatting with PointPilot.
             </p>
           </div>
 

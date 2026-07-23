@@ -1,8 +1,8 @@
 import { ChatMessage, User } from "../types/user";
-import { AWARD_PILOT_SYSTEM_PROMPT } from "./awardPilotPrompt";
+import { POINT_PILOT_SYSTEM_PROMPT } from "./pointPilotPrompt";
 
 /**
- * AwardPilot LLM client.
+ * PointPilot LLM client.
  *
  * This is the ONLY external network call in the app (aside from avatar images).
  * Swap providers by editing the single PROVIDER config block below.
@@ -52,10 +52,10 @@ export async function sendChat(
   userProfile: User
 ): Promise<string> {
   if (!hasApiKey()) {
-    throw new Error("Add VITE_LLM_API_KEY to your .env file to enable AwardPilot.");
+    throw new Error("Add VITE_LLM_API_KEY to your .env file to enable PointPilot.");
   }
 
-  const systemInstruction = `${AWARD_PILOT_SYSTEM_PROMPT}\n\n${buildProfileContext(
+  const systemInstruction = `${POINT_PILOT_SYSTEM_PROMPT}\n\n${buildProfileContext(
     userProfile
   )}`;
 
@@ -81,7 +81,7 @@ export async function sendChat(
     });
   } catch {
     throw new Error(
-      "Network error reaching AwardPilot. Check your connection and try again."
+      "Network error reaching PointPilot. Check your connection and try again."
     );
   }
 
@@ -93,14 +93,14 @@ export async function sendChat(
     } catch {
       /* ignore parse errors */
     }
-    throw new Error(`AwardPilot request failed: ${res.status}${detail}`);
+    throw new Error(`PointPilot request failed: ${res.status}${detail}`);
   }
 
   let data: any;
   try {
     data = await res.json();
   } catch {
-    throw new Error("AwardPilot returned an unreadable response. Please retry.");
+    throw new Error("PointPilot returned an unreadable response. Please retry.");
   }
 
   const text: string | undefined =
@@ -111,9 +111,9 @@ export async function sendChat(
   if (!text || !text.trim()) {
     const blocked = data?.promptFeedback?.blockReason;
     if (blocked) {
-      throw new Error(`AwardPilot could not answer that (${blocked}).`);
+      throw new Error(`PointPilot could not answer that (${blocked}).`);
     }
-    throw new Error("AwardPilot returned an empty response. Please try again.");
+    throw new Error("PointPilot returned an empty response. Please try again.");
   }
 
   return text.trim();

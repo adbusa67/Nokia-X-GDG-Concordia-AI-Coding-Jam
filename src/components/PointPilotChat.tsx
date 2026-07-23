@@ -5,7 +5,7 @@ import { Send, Trash2, Sparkles, Plane, AlertTriangle, Bot } from "lucide-react"
 import { ChatMessage, User } from "../types/user";
 import { getItem, setItem, removeItem, chatKey } from "../lib/storage";
 import { sendChat, hasApiKey } from "../lib/llm";
-import { CONVERSATION_STARTERS } from "../lib/awardPilotPrompt";
+import { CONVERSATION_STARTERS } from "../lib/pointPilotPrompt";
 import { Button } from "./Button";
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
   user: User;
 };
 
-export function AwardPilotChat({ user }: Props) {
+export function PointPilotChat({ user }: Props) {
   const keyPresent = hasApiKey();
   const storageKey = chatKey(user.id);
 
@@ -100,7 +100,7 @@ export function AwardPilotChat({ user }: Props) {
           </div>
           <div>
             <h2 className="flex items-center gap-2 text-base font-bold text-white sm:text-lg">
-              AwardPilot
+              PointPilot
               <span className="rounded-full bg-pilot/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-pilot">
                 AI
               </span>
@@ -124,7 +124,7 @@ export function AwardPilotChat({ user }: Props) {
               <Sparkles className="h-7 w-7" />
             </div>
             <h3 className="text-lg font-bold text-white">
-              Hi {user.username.split(" ")[0]}, I'm AwardPilot ✈️
+              Hi {user.username.split(" ")[0]}, I'm PointPilot ✈️
             </h3>
             <p className="mt-1 text-sm text-gray-400">
               I read your wallet and preferences to find the best ways to spend your
@@ -165,7 +165,7 @@ export function AwardPilotChat({ user }: Props) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              placeholder="Ask AwardPilot… (Enter to send, Shift+Enter for a new line)"
+              placeholder="Ask PointPilot… (Enter to send, Shift+Enter for a new line)"
               className="pp-scroll max-h-36 min-h-[46px] flex-1 resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 backdrop-blur focus:border-pilot/50 focus:outline-none focus:ring-2 focus:ring-pilot/30"
               disabled={loading}
             />
@@ -181,7 +181,7 @@ export function AwardPilotChat({ user }: Props) {
         ) : (
           <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-            <span>Add VITE_LLM_API_KEY to your .env file to enable AwardPilot.</span>
+            <span>Add VITE_LLM_API_KEY to your .env file to enable PointPilot.</span>
           </div>
         )}
       </div>
