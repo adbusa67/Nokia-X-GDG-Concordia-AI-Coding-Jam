@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, KeyboardEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Send, Trash2, Sparkles, Plane, AlertTriangle, Bot } from "lucide-react";
+import { Send, Square, Trash2, Sparkles, Plane, AlertTriangle, Bot } from "lucide-react";
 import { ChatMessage, User } from "../types/user";
 import { getItem, setItem, removeItem, chatKey } from "../lib/storage";
-import { sendChat, hasApiKey } from "../lib/llm";
+import { streamChat, isLlmConfigured } from "../lib/llm";
 import { CONVERSATION_STARTERS } from "../lib/pointPilotPrompt";
 import { Button } from "./Button";
 
@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function PointPilotChat({ user }: Props) {
-  const keyPresent = hasApiKey();
+  const configured = isLlmConfigured();
   const storageKey = chatKey(user.id);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -23,6 +23,7 @@ export function PointPilotChat({ user }: Props) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Load history on mount / when the user changes.
   useEffect(() => {
@@ -30,14 +31,16 @@ export function PointPilotChat({ user }: Props) {
     setMessages(Array.isArray(saved) ? saved : []);
   }, [storageKey]);
 
-  // Persist history whenever it changes.
+  // Persist history whenever it changes (skip empty in-flight bubbles).
   useEffect(() => {
-    if (messages.length > 0) {
-      setItem(storageKey, messages);
-    }
+    const toSave = messages.filter((m) => m.content.trim() !== "");
+    if (toSave.length > 0) setItem(storageKey, toSave);
   }, [messages, storageKey]);
 
-  // Auto-scroll to newest message.
+  // Abort any in-flight stream on unmount.
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Auto-scroll to newest content.
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
@@ -47,31 +50,58 @@ export function PointPilotChat({ user }: Props) {
 
   const send = async (text: string) => {
     const content = text.trim();
-    if (!content || loading || !keyPresent) return;
+    if (!content || loading || !configured) return;
 
-    const nextMessages: ChatMessage[] = [
-      ...messages,
-      { role: "user", content },
-    ];
-    setMessages(nextMessages);
+    // Snapshot the prior conversation, then add the user turn + an empty
+    // assistant bubble that fills as tokens stream in.
+    const withUser: ChatMessage[] = [...messages, { role: "user", content }];
+    setMessages([...withUser, { role: "assistant", content: "" }]);
     setInput("");
     setLoading(true);
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       // `user` prop is always the latest wallet snapshot from the dashboard.
-      const reply = await sendChat(nextMessages, user);
-      setMessages([...nextMessages, { role: "assistant", content: reply }]);
+      await streamChat(withUser, user, {
+        signal: controller.signal,
+        onToken: (chunk) => {
+          setMessages((prev) => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last && last.role === "assistant") {
+              copy[copy.length - 1] = { ...last, content: last.content + chunk };
+            }
+            return copy;
+          });
+        },
+      });
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong. Please retry.";
-      setMessages([
-        ...nextMessages,
-        { role: "assistant", content: `⚠️ ${message}` },
-      ]);
+      if ((err as Error).name === "AbortError") {
+        // User stopped the stream — keep whatever streamed so far.
+      } else {
+        const message =
+          err instanceof Error ? err.message : "Something went wrong. Please retry.";
+        setMessages((prev) => {
+          const copy = [...prev];
+          const last = copy[copy.length - 1];
+          if (last && last.role === "assistant") {
+            copy[copy.length - 1] = {
+              ...last,
+              content: last.content || `⚠️ ${message}`,
+            };
+          }
+          return copy;
+        });
+      }
     } finally {
       setLoading(false);
+      abortRef.current = null;
     }
   };
+
+  const stop = () => abortRef.current?.abort();
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -81,11 +111,16 @@ export function PointPilotChat({ user }: Props) {
   };
 
   const clearChat = () => {
+    abortRef.current?.abort();
     setMessages([]);
     removeItem(storageKey);
   };
 
-  const isEmpty = messages.length === 0;
+  const nonEmpty = messages.filter((m) => m.content.trim() !== "");
+  const isEmpty = nonEmpty.length === 0;
+  const last = messages[messages.length - 1];
+  const showTyping =
+    loading && (!last || last.role !== "assistant" || last.content === "");
 
   return (
     <div className="relative flex h-[600px] flex-col overflow-hidden rounded-2xl border border-pilot/30 bg-white/5 backdrop-blur-xl shadow-2xl shadow-pilot/10 lg:h-[720px]">
@@ -118,7 +153,7 @@ export function PointPilotChat({ user }: Props) {
 
       {/* Message list */}
       <div ref={scrollRef} className="pp-scroll flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-5">
-        {isEmpty && (
+        {isEmpty && !loading && (
           <div className="mx-auto max-w-lg text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-pilot/15 text-pilot">
               <Sparkles className="h-7 w-7" />
@@ -131,7 +166,7 @@ export function PointPilotChat({ user }: Props) {
               points. Pick a starter or ask me anything.
             </p>
 
-            {keyPresent && (
+            {configured && (
               <div className="mt-5 grid gap-2 text-left">
                 {CONVERSATION_STARTERS.map((s) => (
                   <button
@@ -148,16 +183,23 @@ export function PointPilotChat({ user }: Props) {
           </div>
         )}
 
-        {messages.map((m, i) => (
-          <MessageBubble key={i} message={m} avatarUrl={user.avatarUrl} username={user.username} />
-        ))}
+        {messages.map((m, i) =>
+          m.role === "assistant" && m.content === "" ? null : (
+            <MessageBubble
+              key={i}
+              message={m}
+              avatarUrl={user.avatarUrl}
+              username={user.username}
+            />
+          )
+        )}
 
-        {loading && <TypingIndicator />}
+        {showTyping && <TypingIndicator />}
       </div>
 
       {/* Input area */}
       <div className="relative border-t border-white/10 p-3 sm:p-4">
-        {keyPresent ? (
+        {configured ? (
           <div className="flex items-end gap-2">
             <textarea
               ref={textareaRef}
@@ -169,19 +211,33 @@ export function PointPilotChat({ user }: Props) {
               className="pp-scroll max-h-36 min-h-[46px] flex-1 resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 backdrop-blur focus:border-pilot/50 focus:outline-none focus:ring-2 focus:ring-pilot/30"
               disabled={loading}
             />
-            <Button
-              onClick={() => send(input)}
-              disabled={loading || !input.trim()}
-              className="!bg-pilot !shadow-pilot/30 hover:!bg-[#8f74ff] h-[46px]"
-              aria-label="Send message"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            {loading ? (
+              <Button
+                variant="secondary"
+                onClick={stop}
+                className="h-[46px]"
+                aria-label="Stop generating"
+              >
+                <Square className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={() => send(input)}
+                disabled={!input.trim()}
+                className="!bg-pilot !shadow-pilot/30 hover:!bg-[#8f74ff] h-[46px]"
+                aria-label="Send message"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-            <span>Add VITE_LLM_API_KEY to your .env file to enable PointPilot.</span>
+            <span>
+              Add your CURSOR_API_KEY to <code>.env</code> and run{" "}
+              <code>npm run dev:all</code> to enable PointPilot.
+            </span>
           </div>
         )}
       </div>

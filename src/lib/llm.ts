@@ -4,18 +4,30 @@ import { POINT_PILOT_SYSTEM_PROMPT } from "./pointPilotPrompt";
 /**
  * PointPilot LLM client.
  *
- * This is the ONLY external network call in the app (aside from avatar images).
- * Swap providers by editing the single PROVIDER config block below.
+ * The browser NEVER sees a real model key. It talks to our tiny local backend
+ * (server/index.mjs), which uses the Cursor Agent SDK (@cursor/sdk) with
+ * CURSOR_API_KEY to reach api.cursor.com — the same mechanism ~/ws/infra-ai
+ * uses. The backend speaks an OpenAI-compatible streaming API, so this client
+ * is a plain fetch + SSE parser.
+ *
+ * This is the ONLY external network call in the app (aside from avatar images):
+ * everything is proxied through the local backend to the Cursor API.
+ *
+ * Config comes from Vite env vars (see .env.example):
+ *   VITE_LLM_API_KEY   — any non-empty value ("local"); real auth is server-side
+ *   VITE_LLM_BASE_URL  — OpenAI-compatible base URL (default the local backend)
+ *   VITE_LLM_MODEL     — model id passed through to the backend (default "auto")
  */
 
-// ─── Provider config (swap here to change LLM providers) ─────────────────────
-const MODEL = "gemini-1.5-flash";
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
-
+// ─── Provider config (swap here to change LLM backends) ──────────────────────
 const API_KEY = (import.meta.env.VITE_LLM_API_KEY ?? "").trim();
+const BASE_URL = (
+  import.meta.env.VITE_LLM_BASE_URL?.trim() || "http://localhost:8787/v1"
+).replace(/\/+$/, "");
+const MODEL = import.meta.env.VITE_LLM_MODEL?.trim() || "auto";
 
-/** True when an API key is configured, i.e. the chat can actually send. */
-export function hasApiKey(): boolean {
+/** True when the client is configured to talk to the backend. */
+export function isLlmConfigured(): boolean {
   return API_KEY.length > 0;
 }
 
@@ -42,79 +54,105 @@ function buildProfileContext(user: User): string {
   ].join("\n");
 }
 
+export type StreamOptions = {
+  /** Called with each new chunk of text as it streams in. */
+  onToken: (chunk: string) => void;
+  /** Optional AbortSignal so the caller can cancel an in-flight response. */
+  signal?: AbortSignal;
+};
+
 /**
- * Send the conversation to the LLM and return the assistant's reply text.
- * `messages` is the full prior conversation PLUS the new user message (last).
- * Throws on missing key or network/HTTP failure (the UI surfaces a friendly bubble).
+ * Stream PointPilot's reply for the given conversation. The system prompt and a
+ * fresh snapshot of the user's wallet/preferences are prepended automatically,
+ * so `conversation` should be just the user/assistant turns (latest last).
+ *
+ * Resolves with the full assistant message once the stream ends. Throws on
+ * network/auth/config errors.
  */
-export async function sendChat(
-  messages: ChatMessage[],
-  userProfile: User
+export async function streamChat(
+  conversation: ChatMessage[],
+  userProfile: User,
+  { onToken, signal }: StreamOptions,
 ): Promise<string> {
-  if (!hasApiKey()) {
-    throw new Error("Add VITE_LLM_API_KEY to your .env file to enable PointPilot.");
-  }
-
-  const systemInstruction = `${POINT_PILOT_SYSTEM_PROMPT}\n\n${buildProfileContext(
-    userProfile
-  )}`;
-
-  // Gemini expects roles "user" and "model".
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
-
-  let res: Response;
-  try {
-    res = await fetch(`${ENDPOINT}?key=${encodeURIComponent(API_KEY)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemInstruction }] },
-        contents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-        },
-      }),
-    });
-  } catch {
+  if (!isLlmConfigured()) {
     throw new Error(
-      "Network error reaching PointPilot. Check your connection and try again."
+      "PointPilot isn't connected yet. Copy .env.example to .env, add your " +
+        "CURSOR_API_KEY, then run `npm run dev:all`.",
     );
   }
 
-  if (!res.ok) {
+  const systemContent = `${POINT_PILOT_SYSTEM_PROMPT}\n\n${buildProfileContext(
+    userProfile,
+  )}`;
+
+  const payload = [
+    { role: "system", content: systemContent },
+    ...conversation.map((m) => ({ role: m.role, content: m.content })),
+  ];
+
+  const res = await fetch(`${BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: payload,
+      stream: true,
+      temperature: 0.4,
+    }),
+    signal,
+  });
+
+  if (!res.ok || !res.body) {
     let detail = "";
     try {
-      const err = await res.json();
-      detail = err?.error?.message ? ` (${err.error.message})` : "";
+      detail = await res.text();
     } catch {
-      /* ignore parse errors */
+      /* ignore */
     }
-    throw new Error(`PointPilot request failed: ${res.status}${detail}`);
+    throw new Error(
+      `PointPilot request failed (${res.status} ${res.statusText}).${
+        detail ? ` ${detail.slice(0, 300)}` : ""
+      }`,
+    );
   }
 
-  let data: any;
-  try {
-    data = await res.json();
-  } catch {
-    throw new Error("PointPilot returned an unreadable response. Please retry.");
-  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let full = "";
 
-  const text: string | undefined =
-    data?.candidates?.[0]?.content?.parts
-      ?.map((p: { text?: string }) => p?.text ?? "")
-      .join("") ?? undefined;
+  // Parse Server-Sent Events: lines of `data: {json}` terminated by blank lines.
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
 
-  if (!text || !text.trim()) {
-    const blocked = data?.promptFeedback?.blockReason;
-    if (blocked) {
-      throw new Error(`PointPilot could not answer that (${blocked}).`);
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    // Keep the last (possibly partial) line in the buffer.
+    buffer = lines.pop() ?? "";
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line || !line.startsWith("data:")) continue;
+
+      const data = line.slice(5).trim();
+      if (data === "[DONE]") return full;
+
+      try {
+        const json = JSON.parse(data);
+        const delta: string | undefined = json?.choices?.[0]?.delta?.content;
+        if (delta) {
+          full += delta;
+          onToken(delta);
+        }
+      } catch {
+        // Ignore keep-alive / non-JSON lines.
+      }
     }
-    throw new Error("PointPilot returned an empty response. Please try again.");
   }
 
-  return text.trim();
+  return full;
 }
