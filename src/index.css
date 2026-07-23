@@ -23,6 +23,51 @@ body {
   color: #e5e7eb;
 }
 
+/* Live streaming caret shown at the end of an in-flight assistant reply */
+@keyframes pp-caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+.pp-caret {
+  display: inline-block;
+  width: 0.5rem;
+  height: 1.05rem;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #a78bfa, #7c5cff);
+  box-shadow: 0 0 8px rgba(124, 92, 255, 0.8);
+  animation: pp-caret-blink 1s step-end infinite;
+}
+
+/* Sheen sweep used on the CPP value meter for a premium feel */
+@keyframes pp-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+.pp-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  animation: pp-sheen 2.8s ease-in-out infinite;
+}
+
 /* Thin, subtle scrollbars for the chat panel */
 .pp-scroll {
   scrollbar-width: thin;
