@@ -46,6 +46,10 @@ real balances as ground truth and recommends the highest-value way to book any r
 Built with Vite + React + TypeScript, it persists your profile and chat locally — no
 backend or database required.
 
+We built Point Pilot with the help of AI agent **skills** — including the `ui-ux-pro-max`
+design skill to generate our design system and enforce an accessible, polished UI — which
+let a small team ship a cohesive, professional product within the hackathon timebox.
+
 **Signature detail:** Point Pilot answers a booking request ("YYZ → Tokyo in business,
 next spring") with a ranked set of award strategies computed against *your* actual
 balances — which program to book through, the points required, the transfer path
