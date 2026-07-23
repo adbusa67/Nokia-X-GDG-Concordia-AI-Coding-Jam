@@ -88,6 +88,17 @@ Welcome! This is a fast-paced AI coding jam designed to boost your skills and sp
 
 ## Additional Resources
 
-- [Google AI Studio (Gemini API keys)](https://aistudio.google.com)
-- [Google Antigravity](https://antigravity.google/)
+### Google Antigravity
+
+- [Google Antigravity Homepage](https://antigravity.google/)
+- [Install Google Antigravity](https://antigravity.google/download)
+
+### Google AI Studio
+
+- [Google AI Studio Homepage](https://aistudio.google.com)
+- [Build apps in Google AI Studio](https://ai.google.dev/gemini-api/docs/aistudio-build-mode)
+- [Using Gemini API keys (create key)](https://ai.google.dev/gemini-api/docs/api-key)
+
+### Gemini
+
 - [Gemini Prompt Design Strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies)
