@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Dark premium fintech / travel gradient: #0B1220 -> #111827 */
+  background: linear-gradient(160deg, #0b1220 0%, #111827 100%);
+  background-attachment: fixed;
+  color: #e5e7eb;
+}
+
+/* Thin, subtle scrollbars for the chat panel */
+.pp-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.pp-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.pp-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+.pp-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Markdown rendering styles for AwardPilot assistant replies */
+.pp-markdown {
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: #e5e7eb;
+  word-break: break-word;
+}
+.pp-markdown h1,
+.pp-markdown h2,
+.pp-markdown h3,
+.pp-markdown h4 {
+  color: #ffffff;
+  font-weight: 700;
+  margin: 0.9rem 0 0.5rem;
+  line-height: 1.25;
+}
+.pp-markdown h1 {
+  font-size: 1.2rem;
+}
+.pp-markdown h2 {
+  font-size: 1.1rem;
+}
+.pp-markdown h3 {
+  font-size: 1rem;
+}
+.pp-markdown p {
+  margin: 0.5rem 0;
+}
+.pp-markdown ul,
+.pp-markdown ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.pp-markdown li {
+  margin: 0.25rem 0;
+}
+.pp-markdown ul {
+  list-style: disc;
+}
+.pp-markdown ol {
+  list-style: decimal;
+}
+.pp-markdown a {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+.pp-markdown strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+.pp-markdown code {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.35rem;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.85em;
+}
+.pp-markdown pre {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.6rem;
+  padding: 0.75rem;
+  overflow-x: auto;
+  margin: 0.6rem 0;
+}
+.pp-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+.pp-markdown blockquote {
+  border-left: 3px solid rgba(124, 92, 255, 0.6);
+  padding-left: 0.75rem;
+  margin: 0.6rem 0;
+  color: #cbd5e1;
+}
+.pp-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+  display: block;
+  overflow-x: auto;
+}
+.pp-markdown th,
+.pp-markdown td {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+.pp-markdown th {
+  background: rgba(124, 92, 255, 0.15);
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pp-markdown tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.03);
+}
