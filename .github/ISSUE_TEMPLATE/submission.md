@@ -1,16 +1,13 @@
 ---
 name: Team Submission
 about: Submit your Coding Jam project
-title: "Infrabots — Point Pilot"
+title: Infrabots
 labels: submission
 ---
 
 <!-- The official Coding Jam submission is usually done via https://codingjam.dev/submit.
      It is not mandatory for this event, but it's a great way to showcase your build!
 -->
-
-**Team name:** Infrabots
-**Project name:** Point Pilot
 
 ## Team members
 
